@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <img class="pure-img-responsive" src="{{ url_for('static', filename='homepage.jpg') }}">
+ {% endblock %}
+
+{% block content %}
+  <h2 class="content-head">{% block title %}brow picture{% endblock %}</h2>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('New_Info.addpicture') }}">Add New picture</a>
+    <br />
+    <a class="action" href="{{ url_for('New_Info.oldresult') }}">see old result</a>
+
+  {% endif %}
+
+<!--  <h3 class="content-subhead">{{points}}</h3>-->
+<!--  <div>{{folium_map | safe}}</div>-->
+
+  {% for post in posts %}
+    <article class="post">
+      <header>
+        <div>
+          <h1>{{ post['title'] }}</h1>
+          <div class="about">by {{ post['username'] }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
+        </div>
+        {% if g.user['id'] == post['author_id'] %}
+          <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
+        {% endif %}
+      </header>
+      <p class="body">{{ post['body'] }}</p>
+    </article>
+    {% if not loop.last %}
+      <hr>
+
+    {% endif %}
+  {% endfor %}
+{% endblock %}
