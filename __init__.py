@@ -1,13 +1,11 @@
 import os
 from flask import Flask
-
-
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        DATABASE=os.path.join(app.instance_path, 'FaceRecognition.sqlite'),
     )
 
     if test_config is None:
@@ -28,15 +26,19 @@ def create_app(test_config=None):
     def hello():
         return 'Hello, World!'
 
-    #add register add blueprint
-    from . import adding
-    app.register_blueprint(adding.bp)
-    app.add_url_rule('/', endpoint='add')
-
 
     # register Auth Blueprint
     from . import auth
     app.register_blueprint(auth.bp)
-    app.add_url_rule('/', endpoint='auth')
 
+    # register Blog Blueprint
+    from . import blog
+    app.register_blueprint(blog.bp)
+    app.add_url_rule('/', endpoint='index')
+
+    # add register add blueprint
+    from . import adding
+    app.register_blueprint(adding.bp)
+    app.add_url_rule('/', endpoint='add')
+    
     return app

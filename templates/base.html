@@ -1,20 +1,23 @@
 <!doctype html>
-<title>{% block title %}{% endblock %} - Flaskr</title>
+<title>Face Recognition</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='pure.css') }}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <nav>
-  <h1><a href="{{ url_for('New_Info.index') }}">Face Recognition Web</a></h1>
+  <h1><a href="{{ url_for('add.index') }}">Face Recognition</a>
+    {% if g.user %}
+
+    <a href="{{ url_for('add.add_IMG') }}" style="font-size: 17px;">Add picture</a>
+    <a class="action" href="{{ url_for('add.old_results') }}"  style="font-size: 17px;">Past Results</a>{% endif %}
+  </h1>
   <ul>
     {% if g.user %}
-      <li><span>{{ g.user['username'] }}</span>
+      <li><span>{{ g.user }}</span>
       <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
     {% else %}
       <li><a href="{{ url_for('auth.register') }}">Register</a>
       <li><a href="{{ url_for('auth.login') }}">Log In</a>
-
-      <li><a href="{{url_for('adding.addpicture') }}">New picture</a>
-      <li><a href="{{ url_for('adding.index') }}">Home page</a>
+      <li><a href="{{ url_for('blog.index') }}">Home page</a>
 
     {% endif %}
   </ul>

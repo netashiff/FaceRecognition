@@ -11,7 +11,7 @@ import datetime
 USERNAME = ''
 client = MongoClient('mongodb://localhost:27017')
 
-FaceRecognize = client['FaceRecognize']
+FaceRecDB = client['UserFaceRec_db']
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
@@ -33,7 +33,7 @@ def register():
 
         if error is None:
             try:
-                userCollection = FaceRecognize[username]
+                userCollection = FaceRecDB[username]
                 USERNAME = username
                 information = {"Username": username,
                                "Password": password,
@@ -43,7 +43,7 @@ def register():
                                "Age": age,
                                "Date Created": datetime.datetime.utcnow()}
                 document = userCollection.insert_one(information).inserted_id
-                print(FaceRecognize.list_collection_names())
+                print(FaceRecDB.list_collection_names())
             except IOError:
                 error = f"User {username} is already registered."
             else:
@@ -58,27 +58,26 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
         error = None
+        USERNAME = ''
 
         #Check if user exists and get pass
-        usercol = FaceRecognize["username"]
+        usercol = FaceRecDB[username]
         myquery = {"Username": username}
         mydoc = usercol.find(myquery)
         USERPASS = ''
         USERID = ''
-        for x in mydoc:
-            USERNAME = username
-            USERPASS = x['Password']
+        for document in usercol.find():
+            USERNAME = document["Username"]
+            USERPASS = document["Password"]
+            break
 
         user = USERNAME
-
-        if user is None:
-            error = 'Incorrect username.'
-
         passwordok = False
+        if user != username:
+            error = 'Incorrect username. '
 
-        if USERPASS == password:
+        elif USERPASS == password:
             passwordok = True
 
         elif not passwordok:
