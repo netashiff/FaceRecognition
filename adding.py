@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename
 
 from FaceRecognition.auth import login_required
 from FaceRecognition.foliummaps import create_map_html
+from FaceRecognition import processingIMG
 
 USERNAME = ''
 client = MongoClient('mongodb://localhost:27017')
@@ -82,11 +83,26 @@ def add_IMG():
                 print(FaceRecDB.list_collection_names())
             except IOError:
                 error = f"Picture didnt saved in db."
-            #savinf the file in the uploads folder
+            # savinf the file in the uploads folder
             file.save(os.path.join(UPLOAD_FOLDER, filename))
-            # return redirect(url_for('download_file', name=filename))
+            return redirect(url_for('add.AfterProcessing', name=filename))
     return render_template('adding/addpicture.html')
 
+
+
+# display picture after processing
+@bp.route('/AfterProcessing', methods=('GET', 'POST'))
+@login_required
+def AfterProcessing():
+    # # Retrieving uploaded file path from session
+    # img_file_path = session.get(os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abc.txt', None)
+    # # Display image in Flask application web page
+    # return render_template('show_image.html', user_image=img_file_path)
+    #processingIMG.finding_face()
+
+    full_filename = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abc.txt'
+    print(full_filename)
+    return render_template("adding/AfterProcessing.html", user_image=full_filename)
 
 # try to input the new jump
 @bp.route('/OldResults', methods=('GET', 'POST'))

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import wget
 import PIL.Image
 import dlib
 import numpy as np
