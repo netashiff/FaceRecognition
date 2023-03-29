@@ -6,14 +6,7 @@
 
 {% block content %}
   <form method="POST" enctype=multipart/form-data>
-    <img src="{{ user_image }}" alt="IMG">
-
-    <input type="submit" value="Add New Picture">
-
-    <!doctype html>
-<!--    <h1>Upload new File</h1>-->
-<!--    <input type=file name=file>-->
-<!--    <input type=submit value=Upload>-->
-
+    <img src="{{ url_for('image') }}" alt="Image">
+      <input type="submit" value="Submit">
   </form>
 {% endblock %}

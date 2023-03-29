@@ -1,8 +1,11 @@
 import functools
 import os
+from stat import S_IREAD, S_IWRITE
+
+
 
 from flask import (
-    Blueprint, flash, Flask, g, redirect, render_template, request, session, url_for, Flask
+    Blueprint, flash, Flask, g, redirect, render_template, request, session, url_for, Flask, send_from_directory
 )
 
 from pymongo import MongoClient
@@ -11,8 +14,6 @@ import datetime
 from werkzeug.utils import secure_filename
 
 from FaceRecognition.auth import login_required
-from FaceRecognition.foliummaps import create_map_html
-from FaceRecognition import processingIMG
 
 USERNAME = ''
 client = MongoClient('mongodb://localhost:27017')
@@ -91,7 +92,7 @@ def add_IMG():
 
 
 # display picture after processing
-@bp.route('/AfterProcessing', methods=('GET', 'POST'))
+@bp.route('/AfterProcessing/<filename>', methods=('GET', 'POST'))
 @login_required
 def AfterProcessing():
     # # Retrieving uploaded file path from session
@@ -100,9 +101,19 @@ def AfterProcessing():
     # return render_template('show_image.html', user_image=img_file_path)
     #processingIMG.finding_face()
 
-    full_filename = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abc.txt'
-    print(full_filename)
-    return render_template("adding/AfterProcessing.html", user_image=full_filename)
+    file_path = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abba.jpg'
+    url_for('add.AfterProcessing', filename=file_path, name='my_name')
+
+    # Give the file read and write permissions
+    os.chmod(file_path, S_IREAD | S_IWRITE)
+    img_path = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"
+    #img= url_for(img_path)
+    return render_template('adding/AfterProcessing.html', filename=file_path)
+    return send_from_directory(img_path, file_path)
+    #return render_template("adding/AfterProcessing.html", img_path=img_path)
+    # full_filename = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abc.txt'
+    # print(full_filename)
+    # return render_template("adding/AfterProcessing.html", user_image=full_filename)
 
 # try to input the new jump
 @bp.route('/OldResults', methods=('GET', 'POST'))

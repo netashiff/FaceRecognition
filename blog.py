@@ -4,7 +4,6 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from FaceRecognition.auth import login_required
-from FaceRecognition.foliummaps import create_map_html
 from pymongo import MongoClient
 
 client = MongoClient('mongodb://localhost:27017')
