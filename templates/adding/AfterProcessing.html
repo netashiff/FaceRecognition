@@ -6,7 +6,11 @@
 
 {% block content %}
   <form method="POST" enctype=multipart/form-data>
-    <img src="{{ url_for('image') }}" alt="Image">
-      <input type="submit" value="Submit">
+    <img class="pure-img-responsive" src="{{ url_for('static', filename=user_image) }}" style="width:60%;height:60%;">
+    <img class="pure-img-responsive" src="{{ url_for('static', filename=Face_detected) }}" style="width:60%;height:60%;">
+
+    <input type="submit" value="Show Landmarks">
+    <!doctype html>
+
   </form>
 {% endblock %}

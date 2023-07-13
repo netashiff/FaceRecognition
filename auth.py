@@ -13,6 +13,7 @@ client = MongoClient('mongodb://localhost:27017')
 
 FaceRecDB = client['UserFaceRec_db']
 bp = Blueprint('auth', __name__, url_prefix='/auth')
+current_id ={}
 
 
 @bp.route('/register', methods=('GET', 'POST'))
@@ -35,14 +36,18 @@ def register():
             try:
                 userCollection = FaceRecDB[username]
                 USERNAME = username
-                information = {"Username": username,
+                information = {
+                               "Username": username,
                                "Password": password,
                                "First Name": first_name,
                                "Last Name": last_name,
                                "EMail": email,
                                "Age": age,
                                "Date Created": datetime.datetime.utcnow()}
-                document = userCollection.insert_one(information).inserted_id
+                document_id = userCollection.insert_one(information).inserted_id
+                print(document_id)
+                current_id[username]= document_id
+                print(current_id)
                 print(FaceRecDB.list_collection_names())
             except IOError:
                 error = f"User {username} is already registered."
@@ -103,8 +108,13 @@ def load_logged_in_user():
     else:
         g.user = user_id
 
+
 def get_logged_in_user():
     return session.get('user_id')
+
+
+def get_document_id():
+    return current_id[session.get('user_id')]
 
 
 @bp.route('/logout')

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Face Keypoints{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="POST" enctype=multipart/form-data>
+    {% for img in Pictures %}
+        <img class="pure-img-responsive" src="{{ url_for('static', filename=img) }}" style="width:30%;height:30%;">
+    {% endfor %}
+    <input type="submit" value="Back to main">
+    <!doctype html>
+
+  </form>
+{% endblock %}

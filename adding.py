@@ -1,8 +1,10 @@
+# Neta Shiff
+# Deal with addition picture- download shows et
+
+# imports
 import functools
 import os
 from stat import S_IREAD, S_IWRITE
-
-
 
 from flask import (
     Blueprint, flash, Flask, g, redirect, render_template, request, session, url_for, Flask, send_from_directory
@@ -15,18 +17,24 @@ from werkzeug.utils import secure_filename
 
 from FaceRecognition.auth import login_required
 
+from FaceRecognition import processingIMG, auth
+
+# mongo
 USERNAME = ''
 client = MongoClient('mongodb://localhost:27017')
 
 FaceRecDB = client['UserFaceRec_db']
 bp = Blueprint('add', __name__, url_prefix='/adds')
 
-UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"
+# for different location run needed to change
+project_path = "C:\\Users\\User\\Documents\\winter2023\\capstone\\FaceRecognition"
+
+UPLOAD_FOLDER = project_path + "\\static\\Uploads"
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG'}
 
 app = Flask(__name__)
-app.config['UPLOADED_PHOTOS_DEST'] = os.getcwd()
+app.config['UPLOADED_PHOTOS_DEST'] = project_path
 
 
 def allowed_file(filename):
@@ -41,11 +49,7 @@ def start():
 
 @bp.route('/')
 def index():
-    # start_coords = (25.775084, -80.1947)
-    # folium_map = create_map_html(start_coords)
-
-    return render_template('blog/index.html')
-    # , folium_map=folium_map- for the map
+    return redirect(url_for('blog.index'))
 
 
 # try to input the new jump
@@ -66,7 +70,7 @@ def add_IMG():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            print("the file you chosse is : " + filename)
+            print("the file you chose is : " + filename)
 
             # Get username
             from FaceRecognition.auth import get_logged_in_user
@@ -81,39 +85,38 @@ def add_IMG():
                     "file_name": filename,
                     "Date Created": datetime.datetime.utcnow()}
                 document = IMG_collection.insert_one(IMG_info).inserted_id
+
                 print(FaceRecDB.list_collection_names())
             except IOError:
                 error = f"Picture didnt saved in db."
             # savinf the file in the uploads folder
             file.save(os.path.join(UPLOAD_FOLDER, filename))
-            return redirect(url_for('add.AfterProcessing', name=filename))
+            return redirect(url_for('add.AfterProcessing', filename=filename))
     return render_template('adding/addpicture.html')
-
 
 
 # display picture after processing
 @bp.route('/AfterProcessing/<filename>', methods=('GET', 'POST'))
 @login_required
-def AfterProcessing():
-    # # Retrieving uploaded file path from session
-    # img_file_path = session.get(os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abc.txt', None)
-    # # Display image in Flask application web page
-    # return render_template('show_image.html', user_image=img_file_path)
-    #processingIMG.finding_face()
+def AfterProcessing(filename):
+    # processing the IMG
+    names = processingIMG.finding_face(filename)
+    print(names)
+    IMG_detect = names[len(names) - 1]
+    if request.method == "POST":
+        file_path = project_path + "\\static\\Uploads\\" + filename
+        # processingIMG.show2(file_path, False)
 
-    file_path = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abba.jpg'
-    url_for('add.AfterProcessing', filename=file_path, name='my_name')
+        # url_for('add.AfterProcessing', filename=project_path + "\\Uploads\\" + filename, name='my_name')
+        # Give the file read and write permissions
+        os.chmod(file_path, S_IREAD | S_IWRITE)
+        print("start processing:" + file_path)
 
-    # Give the file read and write permissions
-    os.chmod(file_path, S_IREAD | S_IWRITE)
-    img_path = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"
-    #img= url_for(img_path)
-    return render_template('adding/AfterProcessing.html', filename=file_path)
-    return send_from_directory(img_path, file_path)
-    #return render_template("adding/AfterProcessing.html", img_path=img_path)
-    # full_filename = os.path.dirname(os.path.abspath(__file__)) + "\\Uploads"+'\\abc.txt'
-    # print(full_filename)
-    # return render_template("adding/AfterProcessing.html", user_image=full_filename)
+        # img= url_for(img_path)
+        return redirect(url_for('add.Show_landmarks', face_array=names))
+    return render_template('adding/AfterProcessing.html', user_image='Uploads/' + filename,
+                           Face_detected='IMG_detect/' + IMG_detect)
+
 
 # try to input the new jump
 @bp.route('/OldResults', methods=('GET', 'POST'))
@@ -164,3 +167,50 @@ def old_results():
         # flash(error)
 
     return render_template('adding/oldresult.html')
+
+
+# display picture after processing
+@bp.route('/Show_landmarks/<face_array>', methods=('GET', 'POST'))
+@login_required
+def Show_landmarks(face_array):
+    print(face_array)
+    print(type(face_array))
+    file_names_array=[]
+
+    for file_name in face_array.split(', ')[:-1]:
+        fixed_file_path = file_name.replace("[", "").replace("']", "").replace("'", "")
+        file_names_array.append('Face_landmarks/'+fixed_file_path)
+    for file_name in face_array.split(', '):
+        fixed_file_path = file_name.replace("[", "").replace("']", "").replace("'", "")
+        file_names_array.append('Face_landmarks/' + fixed_file_path)
+    try:
+        # define the filter to identify the document to update
+        filter = {"_id": '643ea4a720cf878230a9907b'}
+
+        # define the update operation to add a row to the "rows" array
+        update = {"$push": {"Imgaes": {"face_cut_picture": file_names_array[len(file_names_array)-1],
+            "face_keypoint_name": file_names_array[:len(file_names_array)-2],
+            "Date Created": datetime.datetime.utcnow()}}}
+        # update the document
+        user_name= auth.get_logged_in_user()
+        document_id = auth.get_document_id()
+        filter = {"_id": document_id}
+        print(user_name)
+        print(filter)
+        userCollection = FaceRecDB[user_name]
+        document = userCollection.update_one(filter, update)
+        print(document)
+        print("insetred")
+        print(FaceRecDB.list_collection_names())
+    except IOError:
+        error = f"Picture didnt saved in db."
+    print(face_array)
+    print(file_names_array)
+    # processing the IMG
+    if request.method == "POST":
+        return redirect(url_for('blog.index'))
+
+    # for i in face_array:
+    #     face_array[i] = '/Face_landmarks' + face_array[i]
+
+    return render_template('adding/Show_landmarks.html', Pictures=file_names_array)
